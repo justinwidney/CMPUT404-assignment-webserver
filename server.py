@@ -1,14 +1,14 @@
-#  coding: utf-8 
+#  coding: utf-8
 import socketserver
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,14 +28,46 @@ import socketserver
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
-    
+
+
+
+    # does all the work required to service a request.
     def handle(self):
+
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+
+        if self.data:
+
+            method = self.data.split()[0])
+            path = self.data.split()[1])
+
+
+            response = selfisGet(method)
+
+    # check for get Messages
+    def isGet(self,method):
+
+        if (method != 'GET'):
+            status_message = "405 Method Not Allowed"
+
+
+
+
+
+    def sendData(self, status_message, contents, mime_type):
+
+
+
+
+
+
+
+
+        #print ("Got a request of: %s\n" % self.data)
+        #self.request.sendall(bytearray("OK",'utf-8'))
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 8080
+    HOST, PORT = "localhost", 8008
 
     socketserver.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
