@@ -1,5 +1,6 @@
 #  coding: utf-8
 import socketserver
+import  datetime
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 #
@@ -36,27 +37,50 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         self.data = self.request.recv(1024).strip()
 
+        print(type(self.data)  )
+
         if self.data:
 
-            method = self.data.split()[0])
-            path = self.data.split()[1])
+            method = self.data.split()[0]
+            path = self.data.split()[1]
 
 
-            response = selfisGet(method)
+            response = self.isGet(method)
 
     # check for get Messages
+    # https://www.tutorialspoint.com/http/http_responses.htm
+
     def isGet(self,method):
 
         if (method != 'GET'):
+
+            mime_type="text/html"
             status_message = "405 Method Not Allowed"
+            contents = "<html> <head> \r\n" + \
+            "<title>405 Method Not Allowed</title> \r\n" + \
+            "</head><body> \r\n" + \
+            "<h1>405 Method Not Allowed</h1>\r\n" + \
+            "</body></html>"
+
+            self.sendResponse(status_message, contents, mime_type)
+
+            return False
 
 
 
 
 
-    def sendData(self, status_message, contents, mime_type):
+    def sendResponse(self, status_message, contents, mime_type):
+
+        response = "HTTP/1.1 " + status_message + "\r\n" + \
+        "Date: " + datetime.datetime.today().strftime("%a, %d %B %Y %X %Z") + \
+        "Content-type: text/" + mime_type + "\r\n" + \
+        "Content-length: " + str(len(contents)) + "\r\n\r\n" + \
+        contents + "\r\n"
 
 
+
+        self.request.sendall(str.encode(response))
 
 
 
@@ -67,7 +91,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         #self.request.sendall(bytearray("OK",'utf-8'))
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 8008
+    HOST, PORT = "localhost", 8080
 
     socketserver.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
