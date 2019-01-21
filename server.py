@@ -1,6 +1,8 @@
 #  coding: utf-8
 import socketserver
 import  datetime
+import os
+
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 #
@@ -31,28 +33,71 @@ import  datetime
 class MyWebServer(socketserver.BaseRequestHandler):
 
 
-
     # does all the work required to service a request.
     def handle(self):
 
         self.data = self.request.recv(1024).strip()
 
-        print(type(self.data)  )
 
         if self.data:
 
             method = self.data.split()[0]
             path = self.data.split()[1]
 
+            URL = os.path.abspath(os.getcwd() + '/www' + path.decode() )
 
+
+            #print(adjusted_resource)
+            #print(URL)
+
+
+
+
+            # Check for Post/Get
             response = self.isGet(method)
+
+            # serve the GET
+            if response:
+
+
+                #print(os.path.exists(URL))
+
+                if( os.path.exists(URL) and "www" in URL):
+
+                        self.serveGet(URL, path)
+                else:
+
+                    # Handle 404 Reponse
+
+                    status_message = "404 Not Found"
+                    mime_type = "html"
+                    contents = "<html> <head> \r\n" + \
+                    "<title>404 Not Found</title> \r\n" + \
+                    "</head><body> \r\n" + \
+                    "<h1>404 Not Found</h1>\r\n" + \
+                    "<p>The Web server cannot find the file or script you asked for. \r\n" + \
+                    "</body></html>"
+                    self.sendResponse(status_message,contents,mime_type)
+
+            # not GET do not serve
+            else:
+                return
+
+        # no data
+        else:
+
+            return
+
+
 
     # check for get Messages
     # https://www.tutorialspoint.com/http/http_responses.htm
 
     def isGet(self,method):
 
-        if (method != 'GET'):
+
+
+        if b"GET" not in method: # 405 Error, Method not supported
 
             mime_type="text/html"
             status_message = "405 Method Not Allowed"
@@ -66,6 +111,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
             return False
 
+        else:
+            return True
 
 
 
@@ -73,7 +120,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def sendResponse(self, status_message, contents, mime_type):
 
         response = "HTTP/1.1 " + status_message + "\r\n" + \
-        "Date: " + datetime.datetime.today().strftime("%a, %d %B %Y %X %Z") + \
+        "Date: " + datetime.datetime.today().strftime("%a, %d %B %Y %X %Z") + "\r\n" \
         "Content-type: text/" + mime_type + "\r\n" + \
         "Content-length: " + str(len(contents)) + "\r\n\r\n" + \
         contents + "\r\n"
@@ -84,11 +131,37 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
 
 
+    def serveGet(self, URL, path):
+
+        status_message = "200 OK"
+
+        try:
+            if ".html" in URL:
+                mime_type="html"
+
+            elif ".css" in URL:
+                mime_type="css"
+            else:
+                mime_type="html"
+
+        except IOError:
+            pass
+
+        # base url like http://127.0.0.1:8080 add the index.html
+        if path.decode()[-1] == '/':
+                URL += '/index.html'
+
+
+        file_contents = open(URL, 'r').read()
+
+
+        self.sendResponse(status_message, file_contents, mime_type)
+
+        return
 
 
 
-        #print ("Got a request of: %s\n" % self.data)
-        #self.request.sendall(bytearray("OK",'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
