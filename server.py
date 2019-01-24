@@ -38,6 +38,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         self.data = self.request.recv(1024).strip()
 
+        #print(self.data.decode())
 
         if self.data:
 
@@ -47,6 +48,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             URL = os.path.abspath(os.getcwd() + '/www' + path.decode() )
 
 
+            #print(path.decode())
             #print(adjusted_resource)
             #print(URL)
 
@@ -68,6 +70,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 else:
 
                     # Handle 404 Reponse
+                    #print("Got Here?")
 
                     status_message = "404 Not Found"
                     mime_type = "html"
@@ -135,6 +138,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         status_message = "200 OK"
 
+        #print(path.decode())
         try:
             if ".html" in URL:
                 mime_type="html"
@@ -152,7 +156,32 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 URL += '/index.html'
 
 
-        file_contents = open(URL, 'r').read()
+        try:
+            file_contents = open(URL, 'r').read()
+        except Exception as e:
+
+            #print("handling exception")
+
+            status_message = "301 Moved Permanently"
+            contents = "<html> <head> \r\n" + \
+            "<title>301 Moved Permanently</title> \r\n" + \
+            "</head><body> \r\n" + \
+            "<h1>moved locations</h1>\r\n" + \
+            "</body></html>"
+
+
+            response = "HTTP/1.1 " + status_message + "\r\n" + \
+            "Date: " + datetime.datetime.today().strftime("%a, %d %B %Y %X %Z") + "\r\n" \
+            "Location: " + path.decode() + "/ \r\n" + \
+            "Content-type: text/" + mime_type + "\r\n"
+
+
+
+            self.request.sendall(str.encode(response))
+
+
+
+            return
 
 
         self.sendResponse(status_message, file_contents, mime_type)
