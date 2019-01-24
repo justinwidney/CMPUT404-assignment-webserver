@@ -38,7 +38,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         self.data = self.request.recv(1024).strip()
 
-        #print(self.data.decode())
 
         if self.data:
 
@@ -46,13 +45,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
             path = self.data.split()[1]
 
             URL = os.path.abspath(os.getcwd() + '/www' + path.decode() )
-
-
-            #print(path.decode())
-            #print(adjusted_resource)
-            #print(URL)
-
-
 
 
             # Check for Post/Get
@@ -69,8 +61,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
                         self.serveGet(URL, path)
                 else:
 
-                    # Handle 404 Reponse
-                    #print("Got Here?")
 
                     status_message = "404 Not Found"
                     mime_type = "html"
@@ -158,38 +148,23 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         try:
             file_contents = open(URL, 'r').read()
+
+        # The file path exists but it points to a folder, serve 301 error.
         except Exception as e:
-
-            #print("handling exception")
-
             status_message = "301 Moved Permanently"
-            contents = "<html> <head> \r\n" + \
-            "<title>301 Moved Permanently</title> \r\n" + \
-            "</head><body> \r\n" + \
-            "<h1>moved locations</h1>\r\n" + \
-            "</body></html>"
-
 
             response = "HTTP/1.1 " + status_message + "\r\n" + \
             "Date: " + datetime.datetime.today().strftime("%a, %d %B %Y %X %Z") + "\r\n" \
             "Location: " + path.decode() + "/ \r\n" + \
             "Content-type: text/" + mime_type + "\r\n"
 
-
-
             self.request.sendall(str.encode(response))
-
-
-
             return
 
 
         self.sendResponse(status_message, file_contents, mime_type)
 
         return
-
-
-
 
 
 if __name__ == "__main__":
